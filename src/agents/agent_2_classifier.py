@@ -52,21 +52,24 @@ class ClassifierOutput(BaseModel):
 	emails: list[EmailResult]
 
 
-_filtered_for_handoff: ClassifierOutput | None = None
-																																													
-
 def on_classifier_handoff(ctx, filtered: ClassifierOutput):
-    global _filtered_for_handoff
-    _filtered_for_handoff = filtered
+    """Required by SDK when input_type is set; no shared state needed."""
+    return None
 
 
 def classifier_handoff_filter(data: HandoffInputData) -> HandoffInputData:
-    """Give agent 3 only the filtered emails, not the full inbox from agent 1."""
-    if _filtered_for_handoff is None:
-        return data
-    payload = json.dumps(_filtered_for_handoff.model_dump())
+    """Pass only classifier handoff payload to agent 3 (drop full history)."""
+    handoff_call = next(
+        (item for item in reversed(data.new_items) if getattr(item, "type", "") == "handoff_call_item"),
+        None,
+    )
+
+    if handoff_call is None:
+        return data.clone(input_history=(), pre_handoff_items=(), new_items=())
+
+    payload_json = handoff_call.raw_item.arguments
     return data.clone(
-        input_history=({"role": "user", "content": payload},),
+        input_history=({"role": "user", "content": payload_json},),
         pre_handoff_items=(),
         new_items=(),
     )
