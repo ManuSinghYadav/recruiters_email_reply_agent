@@ -6,4 +6,4 @@ load_dotenv(override=True)
 
 if __name__ == "__main__":
     result = asyncio.run(run_pipeline())
-    print(result)
+    print(result.final_output)

@@ -13,30 +13,19 @@ def fetch_full_emails(emails: list[EmailResult]) -> list[dict]:
     print(f"{len(emails)} emails are relevent.")
     print([{i.subject} for i in emails])
     print("Fetching full emails ...")
-    
-    msg_ids = [e.msg_id for e in emails]
 	
     gmail = GmailClient()
 
-    query = "is: newer_than:2d -category:promotions -category:social"
+    full_emails = []
 
-    results = gmail.service.users().messages().list(
-        userId='me',
-        q=query,
-        maxResults=10
-    ).execute().get('messages', [])
-
-    emails = []
-
-    for m in results:
-      if m['id'] in msg_ids:
-        data = gmail.extract_email_data(m['id'])
-        emails.append({
-            "id": m["id"],
+    for email in emails:
+        data = gmail.extract_email_data(email.msg_id)
+        full_emails.append({
+            "id": email.msg_id,
             "subject": data["subject"],
 				"body": data["body"]
         })
 	
-    print("Full emails fetched")
+    print(f"{len(full_emails)} full emails fetched")
 
-    return emails
+    return full_emails

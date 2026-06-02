@@ -1,6 +1,6 @@
 from pydantic import BaseModel
-from agents import Agent, handoff, HandoffInputData
-import json
+from agents import Agent, handoff
+from src.utils.payload_only import payload_builder
 from src.agents.agent_3_full_email_fetch import full_email_fetch_agent
 
 classification_instruction = f"""You are an email classification assistant.
@@ -11,24 +11,21 @@ You will receive a list of emails in structured format. Each email contains:
 - snippet: short preview of the email
 
 ## Your Task
-Identify ONLY the emails that are relevant to job opportunities or professional communication.
+Identify ONLY the emails that are relevant to job opportunities to me. Your job is to see if those emails are from any recruiter, which are giving me some opportunity.
 
 ## Criteria for Relevance
 Mark an email as relevant ONLY if it clearly includes:
 - Messages from recruiters, hiring managers, or HR
 - Job opportunities, interview invitations, or follow-ups
-- Requests related to job applications (documents, scheduling, etc.)
 
 ## Ignore
 Do NOT include emails such as:
 - Promotions, newsletters, marketing content
 - Social media notifications
-- Automated updates
+- Automated updates like Alerts and all
 - Any non-job-related communication
 
 ## Important Rules (STRICT)
-- Be highly selective (precision > recall)
-- If unsure, EXCLUDE the email
 - NEVER include all emails unless ALL are clearly relevant
 - It is completely valid to return an empty list
 
@@ -52,7 +49,9 @@ class ClassifierOutput(BaseModel):
 	emails: list[EmailResult]
 
 
-def on_classifier_handoff(ctx, filtered: ClassifierOutput):
+# This is old method, but below I made a function as a wrapper, so I can simply call them at agents.
+
+'''def on_classifier_handoff(ctx, filtered: ClassifierOutput):
     """Required by SDK when input_type is set; no shared state needed."""
     return None
 
@@ -72,7 +71,10 @@ def classifier_handoff_filter(data: HandoffInputData) -> HandoffInputData:
         input_history=({"role": "user", "content": payload_json},),
         pre_handoff_items=(),
         new_items=(),
-    )
+    )'''
+
+
+on_classifier_handoff, classifier_handoff_filter = payload_builder(ClassifierOutput)
 
 
 classifier_agent = Agent(

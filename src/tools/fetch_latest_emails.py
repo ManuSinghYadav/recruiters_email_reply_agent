@@ -7,7 +7,7 @@ def fetch_latest_emails() -> list[dict]:
 
     gmail = GmailClient()
 
-    query = "is: newer_than:2d -category:promotions -category:social"
+    query = "is: newer_than:2d -category:promotions -category:social -category:updates"
 
     results = gmail.service.users().messages().list(
         userId='me',
