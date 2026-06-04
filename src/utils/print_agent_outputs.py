@@ -17,7 +17,7 @@ class PrintAgentOutputs(RunHooks):
 				if 'emails' in data_dict:
 					print(f"Total {len(data_dict['emails'])} emails")
 			else:
-				print(f"{item}")
+				print(f"\nFinal output: {item.content[0].text}")
 			 
 	async def on_agent_end(self, context, agent, output):
-		print(f"Task Finished")
+		print(f"\nTask Finished")

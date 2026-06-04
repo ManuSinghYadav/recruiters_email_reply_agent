@@ -1,6 +1,8 @@
 from pypdf import PdfReader
 from pydantic import BaseModel, Field
-from agents import Agent
+from agents import Agent, handoff, ModelSettings
+from src.utils.payload_only import payload_builder
+from src.agents.agent_5_write_drafts_in_gmail import write_draft_agent
 
 with open("/Users/manuyadav/projects/email_agent/me/summary.txt", "r", encoding="utf-8") as f:
     summary = f.read()
@@ -23,7 +25,7 @@ You will receive a list of emails. Each email contains:
 - id: unique identifier
 - body: full email content
 
-Your task is to generate a professional reply for EACH email.
+Your task is to generate a professional reply for emails. And do not forget to call the handoff in the end.
 
 ---
 
@@ -44,7 +46,6 @@ Input which came from previous tool i.e. fetch_full_emails.
 
 ### Instructions:
 
-- Process EACH email independently
 - For each email:
   - Understand the content
   - Draft a professional reply
@@ -54,15 +55,14 @@ Input which came from previous tool i.e. fetch_full_emails.
 - Maintain a professional, confident tone
 - Be concise but informative
 - If an email is irrelevant or not job-related, skip it
-
----
-
-### Output Format (STRICT):
-
-Return in JSON format, which is defined in response format by pydantic class.
-
 - Include only emails that require a reply
-- Do NOT include extra text outside JSON
+
+### Handoff instructions:
+
+- Do not skip the handoff and transfer the results to next agent i.e. write_draft_agent
+- Do not call multiple handoffs, but only once when you draft the reply of all emails.
+- You MUST have to call the handoff.
+
 """
 
 
@@ -74,10 +74,24 @@ class DraftList(BaseModel):
 	emails: list[Drafts]
 
 
+draft_generator_on_handoff, draft_generator_input_filter = payload_builder(DraftList)
+
+
 draft_generator_agent = Agent(
-	name="draft_generator_agent",
-	model='gpt-4o-mini',
-	instructions=draft_generator_instruction,
-    handoff_description="Generate the draft response for the emails.",
-	output_type=DraftList
+    name="draft_generator_agent",
+    model="gpt-4o-mini",
+    model_settings=ModelSettings(parallel_tool_calls=False),
+    instructions=draft_generator_instruction,
+    handoffs=[
+        handoff(
+            write_draft_agent,
+            input_type=DraftList,
+            on_handoff=draft_generator_on_handoff,
+            input_filter=draft_generator_input_filter,
+            tool_description_override=(
+                "Call this exactly once after all drafts are generated. "
+                "Pass one JSON object with emails as a list containing every draft."
+            ),
+        )
+    ],
 )

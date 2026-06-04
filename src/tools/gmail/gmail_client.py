@@ -118,3 +118,36 @@ class GmailClient:
         ).execute()
 
         print("Email sent!")
+
+    # This to write drafts (this will be called by function tool)
+
+    def create_reply_draft(self, to, subject, body, thread_id, message_id):
+        try:
+            message = MIMEText(body)
+
+            message['to'] = to
+            message['subject'] = f"Re: {subject}"
+            message['In-Reply-To'] = message_id
+            message['References'] = message_id
+
+            raw = base64.urlsafe_b64encode(
+                message.as_bytes()
+            ).decode()
+
+            draft = {
+                'message': {
+                    'raw': raw,
+                    'threadId': thread_id
+                }
+            }
+
+            self.service.users().drafts().create(
+                userId='me',
+                body=draft
+            ).execute()
+
+            return {'is_draft_written': True}
+        
+        except Exception as e:
+            return {'is_draft_written': False,
+            'Error': str(e)}
