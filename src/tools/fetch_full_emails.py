@@ -1,6 +1,10 @@
 from pydantic import BaseModel
 from src.tools.gmail.gmail_client import GmailClient
 from agents import function_tool
+from src.config.logging import setup_logger
+
+
+logger = setup_logger(__name__)
 
 class EmailResult(BaseModel):
 	msg_id: str
@@ -10,9 +14,9 @@ class EmailResult(BaseModel):
 @function_tool
 def fetch_full_emails(emails: list[EmailResult]) -> list[dict]:
 
-    print(f"{len(emails)} emails are relevent.")
-    print([{i.subject} for i in emails])
-    print("Fetching full emails ...")
+    logger.info(f"{len(emails)} emails are relevent.")
+    logger.info([{i.subject} for i in emails])
+    logger.info("Fetching full emails ...")
 	
     gmail = GmailClient()
 
@@ -26,6 +30,6 @@ def fetch_full_emails(emails: list[EmailResult]) -> list[dict]:
 				"body": data["body"]
         })
 	
-    print(f"{len(full_emails)} full emails fetched")
+    logger.info(f"{len(full_emails)} full emails fetched")
 
     return full_emails

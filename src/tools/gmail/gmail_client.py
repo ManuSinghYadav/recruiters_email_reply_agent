@@ -5,7 +5,10 @@ import os
 import base64
 from bs4 import BeautifulSoup
 from email.mime.text import MIMEText
+from src.config.logging import setup_logger
 
+
+logger = setup_logger(__name__)
 
 SCOPES = ['https://www.googleapis.com/auth/gmail.modify']
 
@@ -117,7 +120,7 @@ class GmailClient:
             body=message
         ).execute()
 
-        print("Email sent!")
+        logger.info("Email sent!")
 
     # This to write drafts (this will be called by function tool)
 

@@ -1,9 +1,13 @@
 from src.tools.gmail.gmail_client import GmailClient
 from agents import function_tool
+from src.config.logging import setup_logger
+
+
+logger = setup_logger(__name__)
 
 @function_tool
 def fetch_latest_emails() -> list[dict]:
-    print("Fetching latest emails")
+    logger.info("Fetching latest emails")
 
     gmail = GmailClient()
 
@@ -26,7 +30,7 @@ def fetch_latest_emails() -> list[dict]:
             "snippet": data["snippet"],
         })
 
-    print(f"{len(emails)} emails fetched.")
-    print([f"Subject: {i['subject']}" for i in emails])
+    logger.info(f"{len(emails)} emails fetched.")
+    logger.info([f"Subject: {i['subject']}" for i in emails])
 
     return emails
