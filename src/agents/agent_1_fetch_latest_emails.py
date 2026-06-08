@@ -27,9 +27,9 @@ Important rules:
 """
 
 email_fetch_agent = Agent(
-	name="email_metadata_fetch", 
-	instructions=email_fetch_instruction, 
-	model="gpt-4o-mini",
-	tools=[fetch_latest_emails],
-	handoffs=[classifier_agent]
-	)
+    name="email_metadata_fetch",
+    instructions=email_fetch_instruction,
+    model="gpt-4o-mini",
+    tools=[fetch_latest_emails],
+    handoffs=[classifier_agent],
+)

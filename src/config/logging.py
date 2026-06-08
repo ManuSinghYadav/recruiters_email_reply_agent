@@ -1,6 +1,7 @@
 import logging
 from rich.logging import RichHandler
 
+
 def setup_logger(name):
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
@@ -11,10 +12,12 @@ def setup_logger(name):
 
     # File handler
     file_handler = logging.FileHandler("src/logs/logs.log", "w")
-    file_handler.setFormatter(logging.Formatter(
-        fmt="%(asctime)s - %(levelname)s - %(message)s",
-        datefmt="%d-%b-%Y (%I:%M:%S %p)"
-))
+    file_handler.setFormatter(
+        logging.Formatter(
+            fmt="%(asctime)s - %(levelname)s - %(message)s",
+            datefmt="%d-%b-%Y (%I:%M:%S %p)",
+        )
+    )
 
     logger.addHandler(rich_handler)
     logger.addHandler(file_handler)

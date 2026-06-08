@@ -24,9 +24,9 @@ Important rules:
 
 
 write_draft_agent = Agent(
-	name='write_draft_agent',
-	model='gpt-4o-mini',
-	instructions=write_draft_instruction,
-	tools=[extract_info_and_write_draft],
-	handoff_description='Execute the tool'
+    name="write_draft_agent",
+    model="gpt-4o-mini",
+    instructions=write_draft_instruction,
+    tools=[extract_info_and_write_draft],
+    handoff_description="Execute the tool",
 )

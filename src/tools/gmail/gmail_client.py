@@ -10,55 +10,55 @@ from src.config.logging import setup_logger
 
 logger = setup_logger(__name__)
 
-SCOPES = ['https://www.googleapis.com/auth/gmail.modify']
+SCOPES = ["https://www.googleapis.com/auth/gmail.modify"]
 
 
 class GmailClient:
+    """Handles all major Gmail API functions"""
+
     def __init__(self) -> None:
         self.service = self._get_gmail_service()
-
 
     def _get_gmail_service(self):
         creds = None
 
-        if os.path.exists('token.pkl'):
-            with open('token.pkl', 'rb') as token:
+        if os.path.exists("token.pkl"):
+            with open("token.pkl", "rb") as token:
                 creds = pickle.load(token)
 
         if not creds or not creds.valid:
             flow = InstalledAppFlow.from_client_secrets_file(
-                '/Users/manuyadav/projects/email_agent/credentials.json', SCOPES)
+                "/Users/manuyadav/projects/email_agent/credentials.json", SCOPES
+            )
             creds = flow.run_local_server(port=0)
 
-            with open('token.pkl', 'wb') as token:
+            with open("token.pkl", "wb") as token:
                 pickle.dump(creds, token)
 
-        return build('gmail', 'v1', credentials=creds)
+        return build("gmail", "v1", credentials=creds)
 
     # This is to read emails.
     def extract_email_data(self, msg_id):
-        msg = self.service.users().messages().get(
-            userId='me',
-            id=msg_id,
-            format='full'
-        ).execute()
+        msg = (
+            self.service.users()
+            .messages()
+            .get(userId="me", id=msg_id, format="full")
+            .execute()
+        )
 
-        payload = msg['payload']
-        headers = payload.get('headers', [])
+        payload = msg["payload"]
+        headers = payload.get("headers", [])
 
         # -----------------------
         # ID and Subject
         # -----------------------
-        msg_id = msg['id']
-        subject = next(
-            (h['value'] for h in headers if h['name'] == 'Subject'),
-            ''
-        )
+        msg_id = msg["id"]
+        subject = next((h["value"] for h in headers if h["name"] == "Subject"), "")
 
         # -----------------------
         # Snippet (easy win)
         # -----------------------
-        snippet = msg.get('snippet', '')
+        snippet = msg.get("snippet", "")
 
         # -----------------------
         # Extract full body
@@ -87,9 +87,7 @@ class GmailClient:
         if result:
             data, body_type = result
 
-            decoded = base64.urlsafe_b64decode(data).decode(
-                "utf-8", errors="ignore"
-            )
+            decoded = base64.urlsafe_b64decode(data).decode("utf-8", errors="ignore")
 
             if body_type == "html":
                 soup = BeautifulSoup(decoded, "html.parser")
@@ -101,24 +99,21 @@ class GmailClient:
             "id": msg_id,
             "subject": subject,
             "snippet": snippet,
-            "body": full_text.strip()
+            "body": full_text.strip(),
         }
 
     # This is to send email.
     def send_email(self, to, subject, body):
         message = MIMEText(body)
 
-        message['to'] = to
-        message['subject'] = subject
+        message["to"] = to
+        message["subject"] = subject
 
         raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
 
-        message = {'raw': raw}
+        message = {"raw": raw}
 
-        self.service.users().messages().send(
-            userId='me',
-            body=message
-        ).execute()
+        self.service.users().messages().send(userId="me", body=message).execute()
 
         logger.info("Email sent!")
 
@@ -128,29 +123,18 @@ class GmailClient:
         try:
             message = MIMEText(body)
 
-            message['to'] = to
-            message['subject'] = f"Re: {subject}"
-            message['In-Reply-To'] = message_id
-            message['References'] = message_id
+            message["to"] = to
+            message["subject"] = f"Re: {subject}"
+            message["In-Reply-To"] = message_id
+            message["References"] = message_id
 
-            raw = base64.urlsafe_b64encode(
-                message.as_bytes()
-            ).decode()
+            raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
 
-            draft = {
-                'message': {
-                    'raw': raw,
-                    'threadId': thread_id
-                }
-            }
+            draft = {"message": {"raw": raw, "threadId": thread_id}}
 
-            self.service.users().drafts().create(
-                userId='me',
-                body=draft
-            ).execute()
+            self.service.users().drafts().create(userId="me", body=draft).execute()
 
-            return {'is_draft_written': True}
-        
+            return {"is_draft_written": True}
+
         except Exception as e:
-            return {'is_draft_written': False,
-            'Error': str(e)}
+            return {"is_draft_written": False, "Error": str(e)}

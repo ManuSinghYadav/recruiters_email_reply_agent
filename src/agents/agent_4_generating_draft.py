@@ -4,9 +4,11 @@ from agents import Agent, handoff, ModelSettings
 from src.utils.payload_only import payload_builder
 from src.agents.agent_5_write_drafts_in_gmail import write_draft_agent
 
-with open("/Users/manuyadav/projects/email_agent/me/summary.txt", "r", encoding="utf-8") as f:
+with open(
+    "/Users/manuyadav/projects/email_agent/me/summary.txt", "r", encoding="utf-8"
+) as f:
     summary = f.read()
-	 
+
 
 reader = PdfReader("/Users/manuyadav/projects/email_agent/me/manu_yadav_cv.pdf")
 resume = ""
@@ -67,11 +69,12 @@ Input which came from previous tool i.e. fetch_full_emails.
 
 
 class Drafts(BaseModel):
-	id: str = Field(description='Message id of each email.')
-	draft: str = Field(description='Email draft which LLM will create.')
+    id: str = Field(description="Message id of each email.")
+    draft: str = Field(description="Email draft which LLM will create.")
+
 
 class DraftList(BaseModel):
-	emails: list[Drafts]
+    emails: list[Drafts]
 
 
 draft_generator_on_handoff, draft_generator_input_filter = payload_builder(DraftList)

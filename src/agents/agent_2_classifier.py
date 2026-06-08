@@ -3,7 +3,7 @@ from agents import Agent, handoff
 from src.utils.payload_only import payload_builder
 from src.agents.agent_3_full_email_fetch import full_email_fetch_agent
 
-classification_instruction = f"""You are an email classification assistant.
+classification_instruction = """You are an email classification assistant.
 
 You will receive a list of emails in structured format. Each email contains:
 - msg_id: unique identifier
@@ -40,13 +40,15 @@ Each handoff payload email must have:
 - feedback: short reason it is relevant
 """
 
+
 class EmailResult(BaseModel):
-	msg_id: str
-	subject: str
-	feedback: str
+    msg_id: str
+    subject: str
+    feedback: str
+
 
 class ClassifierOutput(BaseModel):
-	emails: list[EmailResult]
+    emails: list[EmailResult]
 
 
 # This is old method, but below I made a function as a wrapper, so I can simply call them at agents.
